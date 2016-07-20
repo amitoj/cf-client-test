@@ -32,14 +32,14 @@ public class CfClientTest {
 
     private ConnectionContext connectionContext() {
         return DefaultConnectionContext.builder()
-                .apiHost("api.local.pcfdev.io")
+                .apiHost("api.runpivotal.io")
                 .build();
     }
 
     private TokenProvider tokenProvider() {
         return PasswordGrantTokenProvider.builder()
-                .password("user")
-                .username("pass")
+                .password("benedikt.linse@gmail.com")
+                .username("")
                 .build();
     }
 
@@ -63,8 +63,8 @@ public class CfClientTest {
                 .cloudFoundryClient(cloudFoundryClient())
                 .dopplerClient(dopplerClient())
                 .uaaClient(uaaClient())
-                .organization("pcfdev-org")
-                .space("pcfdev-space")
+                .organization("linse-org")
+                .space("development")
                 .build();
         operations.organizations()
                 .list()
