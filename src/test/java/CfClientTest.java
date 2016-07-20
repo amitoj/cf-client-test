@@ -1,7 +1,6 @@
 import lombok.extern.slf4j.Slf4j;
 import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.applications.ListApplicationsRequest;
-import org.cloudfoundry.client.v2.applications.ListApplicationsResponse;
+import org.cloudfoundry.doppler.DopplerClient;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.organizations.OrganizationSummary;
 import org.cloudfoundry.reactor.ConnectionContext;
@@ -11,61 +10,53 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
+import org.cloudfoundry.uaa.UaaClient;
+import org.junit.Before;
 import org.junit.Test;
-import reactor.core.publisher.Mono;
 
+@Slf4j
 public class CfClientTest {
 
-    @Test
-    public void test() {
-        ListApplicationsRequest request = ListApplicationsRequest.builder().build();
-        Mono<ListApplicationsResponse> responseMono = cloudFoundryClient().applicationsV2().list(request);
-    }
+    private ConnectionContext connectionContext;
+    private UaaClient uaaClient;
+    private DopplerClient dopplerClient;
+    private CloudFoundryClient cloudFoundryClient;
+    private TokenProvider tokenProvider;
 
-    private CloudFoundryClient cloudFoundryClient() {
-        return ReactorCloudFoundryClient.builder()
-                .connectionContext(connectionContext())
-                .tokenProvider(tokenProvider())
+    @Before
+    public void setup() {
+        this.tokenProvider = PasswordGrantTokenProvider.builder()
+                .password("user")
+                .username("pass")
                 .build();
-
-    }
-
-    private ConnectionContext connectionContext() {
-        return DefaultConnectionContext.builder()
-                .apiHost("api.runpivotal.io")
+        this.connectionContext = DefaultConnectionContext.builder()
+                .apiHost("api.local.pcfdev.org")
                 .build();
-    }
-
-    private TokenProvider tokenProvider() {
-        return PasswordGrantTokenProvider.builder()
-                .password("benedikt.linse@gmail.com")
-                .username("")
+        this.uaaClient = ReactorUaaClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
                 .build();
-    }
-
-    ReactorDopplerClient dopplerClient() {
-        return ReactorDopplerClient.builder()
-                .connectionContext(connectionContext())
-                .tokenProvider(tokenProvider())
+        this.dopplerClient = ReactorDopplerClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
                 .build();
-    }
-
-    ReactorUaaClient uaaClient() {
-        return ReactorUaaClient.builder()
-                .connectionContext(connectionContext())
-                .tokenProvider(tokenProvider())
+        this.cloudFoundryClient = ReactorCloudFoundryClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
                 .build();
     }
 
     @Test
-    public void testWithOperations() {
+    public void testWitcfhOperations() {
+        log.info("testing getting orgs");
         DefaultCloudFoundryOperations operations = DefaultCloudFoundryOperations.builder()
-                .cloudFoundryClient(cloudFoundryClient())
-                .dopplerClient(dopplerClient())
-                .uaaClient(uaaClient())
-                .organization("linse-org")
-                .space("development")
+                .cloudFoundryClient(cloudFoundryClient)
+                .dopplerClient(dopplerClient)
+                .uaaClient(uaaClient)
+                .organization("pcfdev-org")
+                .space("pcfdev-space")
                 .build();
+        log.info(operations.SUPPORTED_CLI_VERSION);
         operations.organizations()
                 .list()
                 .map(OrganizationSummary::getName)
