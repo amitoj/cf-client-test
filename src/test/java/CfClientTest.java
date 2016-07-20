@@ -14,6 +14,8 @@ import org.cloudfoundry.uaa.UaaClient;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
+
 @Slf4j
 public class CfClientTest {
 
@@ -47,7 +49,7 @@ public class CfClientTest {
     }
 
     @Test
-    public void testWitcfhOperations() {
+    public void testWitcfhOperations() throws InterruptedException {
         log.info("testing getting orgs");
         DefaultCloudFoundryOperations operations = DefaultCloudFoundryOperations.builder()
                 .cloudFoundryClient(cloudFoundryClient)
@@ -61,7 +63,15 @@ public class CfClientTest {
                 .list()
                 .map(OrganizationSummary::getName)
                 .subscribe(this::print);
-        operations.buildpacks().list().subscribe(System.out::println);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        operations.buildpacks().list().subscribe(System.out::println, t -> {
+            t.printStackTrace();
+            latch.countDown();
+        }, latch::countDown);
+
+        latch.await();
     }
 
     public void print(String s) {
