@@ -32,7 +32,8 @@ public class CfClientTest {
                 .username("pass")
                 .build();
         this.connectionContext = DefaultConnectionContext.builder()
-                .apiHost("api.local.pcfdev.org")
+                .apiHost("api.local.pcfdev.io")
+                .skipSslValidation(true)
                 .build();
         this.uaaClient = ReactorUaaClient.builder()
                 .connectionContext(connectionContext)
