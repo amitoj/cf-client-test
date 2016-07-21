@@ -50,7 +50,7 @@ public class CfClientTest {
     }
 
     @Test
-    public void testWitcfhOperations() throws InterruptedException {
+    public void testGetOrganizations() throws InterruptedException {
         log.info("testing getting orgs");
         DefaultCloudFoundryOperations operations = DefaultCloudFoundryOperations.builder()
                 .cloudFoundryClient(cloudFoundryClient)
@@ -59,15 +59,10 @@ public class CfClientTest {
                 .organization("pcfdev-org")
                 .space("pcfdev-space")
                 .build();
-        log.info(operations.SUPPORTED_CLI_VERSION);
-        operations.organizations()
-                .list()
-                .map(OrganizationSummary::getName)
-                .subscribe(this::print);
 
         CountDownLatch latch = new CountDownLatch(1);
 
-        operations.buildpacks().list().subscribe(System.out::println, t -> {
+        operations.organizations().list().subscribe(System.out::println, t -> {
             t.printStackTrace();
             latch.countDown();
         }, latch::countDown);
@@ -75,8 +70,5 @@ public class CfClientTest {
         latch.await();
     }
 
-    public void print(String s) {
-        System.out.println(s);
-    }
 
 }
