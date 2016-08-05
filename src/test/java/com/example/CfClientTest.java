@@ -34,8 +34,8 @@ public class CfClientTest {
     @Before
     public void setup() {
         this.tokenProvider = PasswordGrantTokenProvider.builder()
-                .password("user")
-                .username("pass")
+                .password("pass")
+                .username("user")
                 .build();
         this.connectionContext = DefaultConnectionContext.builder()
                 .apiHost("api.local.pcfdev.io")
@@ -66,12 +66,26 @@ public class CfClientTest {
                 .space("pcfdev-space")
                 .build();
 
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(2);
 
-        operations.organizations().list().subscribe(System.out::println, t -> {
-            t.printStackTrace();
-            latch.countDown();
-        }, latch::countDown);
+        operations.organizations().list().subscribe(
+                System.out::println,
+                t -> {
+                    t.printStackTrace();
+                    latch.countDown();
+                },
+                latch::countDown);
+
+        operations.applications().list().subscribe(
+                a -> {
+                    System.out.println(a);
+                },
+                t -> {
+                    t.printStackTrace();
+                    latch.countDown();
+                },
+                latch::countDown
+        );
 
         latch.await();
     }
